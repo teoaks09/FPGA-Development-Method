@@ -1,0 +1,14 @@
+# Everything generated lives in build/ or is ignored here.
+build/
+.Xil/
+*.jou
+*.log
+*.str
+*.wdb
+*.pb
+xsim.dir/
+obj_dir/
+vivado_agentic_ai_reports/
+llm/raw/local/
+__pycache__/
+.DS_Store

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": {
+      "docs/input/**": "deny",
+      "third_party/**": "deny"
+    },
+    "bash": {
+      "*": "ask",
+      "make *": "allow",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow"
+    }
+  },
+  "mcp": {
+    "vivado": {
+      "type": "local",
+      "command": [
+        "{{ROSS_MCP_BINARY}}"
+      ],
+      "enabled": true
+    },
+    "amd-doc-search": {
+      "type": "remote",
+      "url": "{{AMD_DOC_SEARCH_URL}}",
+      "enabled": true
+    }
+  }
+}

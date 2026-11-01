@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "vivado": {
+      "command": "{{ROSS_MCP_BINARY}}",
+      "args": []
+    },
+    "amd-doc-search": {
+      "type": "http",
+      "url": "{{AMD_DOC_SEARCH_URL}}"
+    }
+  }
+}

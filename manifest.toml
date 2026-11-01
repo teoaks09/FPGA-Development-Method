@@ -1,0 +1,259 @@
+# Canonical project tree. Every project has the same paths; the profile only decides which exist.
+# path   : file, or folder ending in "/" (folder = copy its template subtree, or create it empty)
+# when   : all conditions must hold. Keys: weight, team, deliverable, option. Empty = always.
+#          deliverable "code" is always present. Options are switched on with --with.
+# where  : description for the "Where is what" table in AGENTS.md (omit to leave it out)
+# show   : path shown in that table (default: path)
+# Every file under template/ must be covered by an entry (tools/new_project.py checks this).
+
+# ---------------------------------------------------------------- root
+[[path]]
+path = "AGENTS.md"
+where = "Instructions for every agent and tool (single source; CLAUDE.md imports it)"
+[[path]]
+path = "CLAUDE.md"
+[[path]]
+path = "project.toml"
+where = "Machine-readable profile, tool versions, models, locked paths"
+[[path]]
+path = "Makefile"
+where = "Flow entry points (`make help`)"
+[[path]]
+path = ".gitignore"
+[[path]]
+path = ".mcp.json"
+[[path]]
+path = ".claude/settings.json"
+[[path]]
+path = "opencode.json"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = ".claude/skills/"
+where = "Project skills + AMD Ross skills (linked from third_party/, pinned version)"
+when = ["weight=standard,comprehensive"]
+
+# ---------------------------------------------------------------- docs/input (approval needed)
+[[path]]
+path = "docs/input/external/"
+show = "docs/input/"
+where = "Inputs fixed at setup (requirements, constitution, coding rules); change only with approval. external/ = original documents"
+[[path]]
+path = "docs/input/customer_needs.md"
+when = ["weight=comprehensive"]
+[[path]]
+path = "docs/input/system_requirements.md"
+[[path]]
+path = "docs/input/constitution.md"
+[[path]]
+path = "docs/input/coding_rules.md"
+[[path]]
+path = "docs/input/development_environment.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "docs/input/project_plan.md"
+when = ["weight=standard,comprehensive"]
+
+# ---------------------------------------------------------------- docs/output (produced)
+[[path]]
+path = "docs/output/specs/_template.md"
+show = "docs/output/"
+where = "Produced during design; specs/<feature>.md = feature specifications"
+[[path]]
+path = "docs/output/architecture.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "docs/output/interface_control.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "docs/output/decision_record.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "docs/output/verification_plan.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "docs/output/verification_report.md"
+when = ["weight=comprehensive"]
+[[path]]
+path = "docs/output/project_close.md"
+when = ["weight=comprehensive"]
+[[path]]
+path = "docs/output/knowledge/"
+when = ["weight=comprehensive"]
+[[path]]
+path = "docs/output/ip_user_guide.md"
+[[path]]
+path = "docs/output/hardware_test_procedure.md"
+when = ["deliverable=hwtest"]
+
+# ---------------------------------------------------------------- hw
+[[path]]
+path = "hw/rtl/common/"
+show = "hw/rtl/<feature>/"
+where = "RTL per feature (files.f = compile list); common/ = shared package"
+[[path]]
+path = "hw/rtl/top/"
+show = "hw/rtl/top/"
+where = "board-independent design top"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "hw/tb/common/"
+show = "hw/tb/<feature>/"
+where = "testbench per feature (mirrors hw/rtl); common/ = SV framework"
+[[path]]
+path = "hw/tb/top/"
+show = "hw/tb/top/"
+where = "System testbench of the design top"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "hw/tb/acceptance/"
+show = "hw/tb/acceptance/"
+where = "acceptance testbenches written by Claude, locked for free models"
+when = ["team=L3"]
+[[path]]
+path = "hw/constraints/ooc/"
+show = "hw/constraints/ooc/"
+where = "out-of-context timing constraints"
+[[path]]
+path = "hw/constraints/ip/"
+show = "hw/constraints/ip/"
+where = "scoped XDC that travels with the design"
+when = ["deliverable=ip,board"]
+[[path]]
+path = "hw/xilinx_ip/"
+show = "hw/xilinx_ip/"
+where = "one Tcl per Xilinx IP instance (no .xci)"
+when = ["option=xilinx_ip"]
+[[path]]
+path = "hw/hls/"
+show = "hw/hls/<kernel>/"
+where = "Vitis HLS sources"
+when = ["option=hls"]
+[[path]]
+path = "hw/ip_package/"
+show = "hw/ip_package/"
+where = "custom IP packaging scripts (IP output in build/ip/)"
+when = ["deliverable=ip"]
+[[path]]
+path = "hw/boards/__BOARD__/"
+show = "hw/boards/<board>/"
+where = "board top, board XDC, block design Tcl, build manifest"
+when = ["deliverable=board"]
+
+# ---------------------------------------------------------------- software
+[[path]]
+path = "sw/"
+show = "sw/"
+where = "product software (driver over HAL, bare-metal/Linux apps)"
+when = ["deliverable=sw"]
+[[path]]
+path = "utils/"
+show = "utils/"
+where = "test tools, not delivered (host/ = PC, target/ = PS)"
+when = ["deliverable=hwtest"]
+
+# ---------------------------------------------------------------- flow
+[[path]]
+path = "flow/project_value.py"
+show = "flow/"
+where = "Automation - vivado/ Tcl, sim/, checks/ (gates), gen/ (generators), git/, tools/"
+[[path]]
+path = "flow/vivado/common.tcl"
+[[path]]
+path = "flow/vivado/lint.tcl"
+[[path]]
+path = "flow/vivado/ooc_synth.tcl"
+[[path]]
+path = "flow/vivado/create_project.tcl"
+[[path]]
+path = "flow/vivado/build_board.tcl"
+when = ["deliverable=board"]
+[[path]]
+path = "flow/sim/run_xsim.sh"
+[[path]]
+path = "flow/checks/lint.sh"
+[[path]]
+path = "flow/checks/run_gates.sh"
+[[path]]
+path = "flow/checks/check_locked.py"
+[[path]]
+path = "flow/checks/env_check.sh"
+[[path]]
+path = "flow/checks/check_coverage.py"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "flow/checks/check_trace.py"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "flow/checks/check_doc_names.py"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "flow/checks/wiki_lint.py"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "flow/gen/new_feature.py"
+[[path]]
+path = "flow/gen/codemap.py"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "flow/git/commit.sh"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = "flow/tools/ross_setup.sh"
+
+# ---------------------------------------------------------------- tracking (deleted at project close)
+[[path]]
+path = "tracking/tasks/_template.md"
+show = "tracking/"
+where = "Progress records during the project; distilled and deleted at close. tasks/ = task/result/review cards"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = "tracking/tasks/_result_template.md"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = "tracking/tasks/_review_template.md"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = "tracking/model_scorecard.md"
+when = ["team=L2,L3,L4"]
+[[path]]
+path = "tracking/start_prompt.md"
+when = ["team=L4"]
+[[path]]
+path = "tracking/problem_reports.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "tracking/schedule.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "tracking/_exit_record_template.md"
+when = ["weight=standard,comprehensive"]
+
+# ---------------------------------------------------------------- llm
+[[path]]
+path = "llm/wiki/SCHEMA.md"
+show = "llm/wiki/"
+where = "knowledge for LLMs (read index.md first; SCHEMA.md = rules); codemap/ = one card per module"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "llm/wiki/index.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "llm/wiki/log.md"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "llm/wiki/codemap/"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "llm/wiki/xilinx/"
+when = ["weight=comprehensive|option=wiki"]
+[[path]]
+path = "llm/wiki/protocols/"
+when = ["weight=comprehensive|option=wiki"]
+[[path]]
+path = "llm/wiki/lessons/"
+when = ["weight=standard,comprehensive"]
+[[path]]
+path = "llm/raw/"
+show = "llm/raw/"
+where = "sources for the wiki (local/ is git-ignored)"
+when = ["weight=comprehensive|option=wiki"]

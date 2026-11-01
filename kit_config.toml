@@ -1,0 +1,38 @@
+# Machine/organisation-specific settings for the kit. Edit once per workstation.
+# The generator copies the relevant values into each new project's project.toml.
+
+[models]
+# Claude Code model aliases (used in .claude/agents/*.md frontmatter)
+opus   = "opus"
+sonnet = "sonnet"
+haiku  = "haiku"
+# opencode model ids in provider/model form (PILOT: fill with the ids `opencode models` prints)
+qwen     = "corp/general"
+deepseek = "corp/code"
+
+[models.names]
+# Human-readable names recorded in commit trailers and the model scorecard.
+# Update when the platform changes the model behind an alias.
+qwen     = "Qwen3.8 Flash Next"
+deepseek = "DeepSeek Flash v4.1-1017"
+opus     = "Claude Opus 5.5"
+sonnet   = "Claude Sonnet 5.5"
+haiku    = "Claude Haiku 5.5"
+
+[tools]
+vivado_version = "2026.1"            # ask the user; never search the file system
+vivado_path    = "/tools/Xilinx/Vivado/2026.1"
+ross_version   = "2026.9.1"          # AMD Ross release for NEW projects (existing projects keep their pin)
+# Vivado MCP server binaries are installed side by side, one folder per Ross version:
+#   <ross_mcp_root>/<version>/vivado-mcp-server-linux-amd64-<version>
+ross_mcp_root  = "~/tools/ross"
+ross_mcp_binary = "vivado-mcp-server-linux-amd64-{version}"   # Windows: vivado-mcp-server-windows-amd64-{version}.exe
+amd_doc_search_url = "PILOT: url from https://ross.amd.com/chat#setup"
+verilator_version = "5.x"            # pin the exact version used for lint
+
+[organisation]
+ip_vendor = "company.local"          # vendor field of packaged custom IP (VLNV)
+
+[defaults]
+dispatch = "manual"                  # manual | auto  (start manual, move to auto when trusted)
+max_attempts = 3                     # attempts before a task escalates

@@ -1,0 +1,3 @@
+# Expected outputs of the clean build (paths relative to build/impl/__BOARD__/)
+__BOARD__.bit
+timing_summary.rpt

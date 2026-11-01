@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "ask": [
+      "Edit(docs/input/**)",
+      "Write(docs/input/**)",
+      "Bash(git push*)",
+      "Bash(git merge*)"
+    ],
+    "deny": [
+      "Edit(third_party/**)",
+      "Write(third_party/**)",
+      "Read(llm/raw/local/**)"
+    ]
+  }
+}

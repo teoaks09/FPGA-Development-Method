@@ -1,0 +1,32 @@
+# Machine-readable project settings. Scripts read this file.
+[project]
+name = "{{PROJECT}}"
+prefix = "{{PREFIX}}"
+part = "{{PART}}"
+default_clock_mhz = {{CLOCK_MHZ}}
+kit_version = "{{KIT_VERSION}}"
+ip_vendor = "{{IP_VENDOR}}"
+ip_version = "1.0"
+
+[profile]
+weight = "{{WEIGHT}}"
+team = "{{TEAM}}"
+deliverables = [{{DELIVERABLES_TOML}}]
+dispatch = "{{DISPATCH}}"
+max_attempts = {{MAX_ATTEMPTS}}
+
+[tools]
+vivado_version = "{{VIVADO_VERSION}}"
+vivado_path = "{{VIVADO_PATH}}"
+ross_version = "{{ROSS_VERSION}}"
+verilator_version = "{{VERILATOR_VERSION}}"
+
+# Model aliases -> ids (used in agent files) and names (recorded in commit trailers).
+# When the platform changes the model behind an alias, update [models.names] and start a new
+# scorecard row; a project resumed later re-checks this with flow/checks/env_check.sh.
+{{MODELS_TOML}}
+
+[locks]
+# Paths that change only with user approval (checked by `make check-locks`).
+paths = [{{LOCKS_TOML}}]
+base_ref = "main"
