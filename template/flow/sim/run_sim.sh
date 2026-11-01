@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Simulate one feature. Default simulator: xsim. SIM=verilator for fast unit tests.
+# Simulate one feature. Default simulator: xsim (Xilinx IP models).
+# SIM=verilator or SIM=iverilog for fast runs of plain SV/Verilog testbenches (iverilog: limited SV).
 # COVERAGE=1 collects xsim code coverage. TEST=<name> is passed as +TEST=<name>.
 # Prints SIM_RESULT: PASS|FAIL (PASS requires exactly one "TB_RESULT: PASS" and no FAIL line).
 set -u
@@ -56,6 +57,15 @@ verilator)
         verilator --binary --timing -Wno-fatal -Wno-lint -Wno-style --top-module "$top" \
             "${sources[@]}" -o "$top" >compile.log 2>&1 || exit 10
         "./obj_dir/$top" "${plusargs[@]}" >sim.log 2>&1
+        exit 0
+    )
+    code=$?
+    ;;
+iverilog)
+    (
+        cd "$out"
+        iverilog -g2012 -s "$top" -o "$top.vvp" "${sources[@]}" >compile.log 2>&1 || exit 10
+        vvp -n "$top.vvp" "${plusargs[@]}" >sim.log 2>&1
         exit 0
     )
     code=$?

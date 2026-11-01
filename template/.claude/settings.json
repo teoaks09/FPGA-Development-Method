@@ -1,8 +1,10 @@
 {
   "permissions": {
     "ask": [
-      "Edit(docs/input/**)",
-      "Write(docs/input/**)",
+      "Edit(docs/requirements.md)",
+      "Write(docs/requirements.md)",
+      "Edit(docs/coding_rules.md)",
+      "Write(docs/coding_rules.md)",
       "Bash(git push*)",
       "Bash(git merge*)"
     ],

@@ -24,7 +24,7 @@ package tb_pkg;
         $display("[INFO] %s", message);
     endfunction
 
-    // Print the single verdict line parsed by flow/sim/run_xsim.sh, then stop.
+    // Print the single verdict line parsed by flow/sim/run_sim.sh, then stop.
     function automatic void tb_finish();
         if (error_count == 0 && check_count > 0) begin
             $display("TB_RESULT: PASS (%0d checks)", check_count);

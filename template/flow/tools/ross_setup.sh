@@ -14,7 +14,7 @@ version="${1:-$(python3 flow/project_value.py tools.ross_version)}"
 if [[ ! -e "$target/.git" ]]; then
     git submodule add "$url" "$target"
 fi
-git -C "$target" fetch --tags --quiet
+git -C "$target" fetch --tags --quiet 2>/dev/null || echo "note: no network, using local tags"
 git -C "$target" checkout --quiet "$version"
 git add "$target"
 

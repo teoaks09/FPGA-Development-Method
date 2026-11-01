@@ -1,14 +1,8 @@
-Mandatory reading: AGENTS.md, docs/input/coding_rules.md, the task card given in the prompt and
-only the inputs listed in it.
+Mandatory reading: AGENTS.md, docs/coding_rules.md, the task card (if any) and only its inputs.
 
-1. Implement the feature in hw/rtl/<feature>/ and list sources in hw/rtl/<feature>/files.f.
-2. Follow coding_rules.md exactly (header with requirement IDs, default_nettype, synchronous reset,
-   XPM/ASYNC_REG for CDC, $clog2 widths, timeouts on every wait state).
-3. Run the gates listed in the card. Fix and re-run until they pass or max_attempts is reached.
-4. Write tracking/tasks/<id>.result.md from the template: paste the raw PASS/FAIL lines.
-
-Rules:
-- Edit only the writable paths in the card.
-- Any behaviour not stated in the spec is listed as DERIVED-nnn in the result card.
-- Never claim a gate passed unless its command output shows it.
-- After max_attempts, set status: escalate and stop.
+1. Implement `hw/rtl/<feature>/`, list sources in `files.f`.
+2. Run `make check FEATURE=<feature>` (OOC=0 while iterating). Fix and re-run until
+   CHECK_RESULT: PASS or max_attempts.
+3. Result card: paste `build/check/<feature>.txt` unchanged.
+Edit only writable paths. Behaviour not in the spec → DERIVED-nnn. Never claim a check passed
+unless its output shows it. After max_attempts: status escalate, stop.

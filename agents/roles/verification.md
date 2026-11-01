@@ -1,12 +1,9 @@
-Mandatory reading: AGENTS.md, docs/input/coding_rules.md, the task card, the feature spec,
-hw/tb/common/ (framework). Do NOT read hw/rtl/<feature>/: the testbench must come from the spec.
+Mandatory reading: AGENTS.md, docs/coding_rules.md, the feature spec, hw/tb/common/.
+Do NOT read hw/rtl/<feature>/: the testbench comes from the spec.
 
-1. Write the testbench in hw/tb/<feature>/ (top module tb_<feature>, sources in files.f) using the
-   common framework: scoreboard checks, watchdog, AXI models.
-2. Every check is tagged with the requirement ID it verifies (tb_check(..., "ID")); every test
-   lists "// REQ: ID, ID" so traceability can be checked by script.
-3. Cover the spec's error cases and timeouts, not only the happy path.
-4. Run `make sim FEATURE=<feature>`; write the result card with the raw TB_RESULT lines.
-
-If a failure looks like a spec ambiguity, record it under Open questions instead of guessing.
+1. Write `hw/tb/<feature>/tb_<feature>.sv` (+ files.f) in SystemVerilog with hw/tb/common
+   (tb_check with requirement IDs, watchdog, AXI models). Annotate tests `// REQ: ID, ID`.
+2. Cover error cases, timeouts and boundaries, not only the happy path.
+3. `make sim FEATURE=<feature>`; on failure decide whether the RTL or the testbench is wrong and
+   say why. Spec ambiguity → open question, never a guess.
 Never edit hw/tb/acceptance/ or hw/rtl/.

@@ -13,15 +13,15 @@ branch: task/T000-<short-name>
 <!-- one paragraph: what to do -->
 
 ## Inputs (read only these)
-- docs/output/specs/<feature>.md (sections: ...)
+- docs/specs/<feature>.md (sections: ...)
 - Requirements: <ID, ID>
 
 ## Writable paths
 - hw/rtl/<feature>/**
 - tracking/tasks/T000.result.md
 
-## Acceptance gates (run all; copy raw *_RESULT lines from build/gates/<feature>.txt)
-- make gates FEATURE=<feature>
+## Checks (copy the raw *_RESULT lines of build/check/<feature>.txt)
+- make check FEATURE=<feature>
 
 ## Rules
 - Do not modify files outside the writable paths.

@@ -1,81 +1,56 @@
-# Single source for roles. tools/new_project.py renders one agent file per role:
-#   Claude model  -> .claude/agents/<role>.md
-#   free model    -> .opencode/agents/<role>.md
-#   "none"        -> no file (role not used at that team level)
-# Model keys: opus | sonnet | haiku | qwen | deepseek | none (resolved via kit_config.toml)
-# Effort: max | high | medium | low | default   (PILOT: how each tool applies it)
-# weights: which project weights use the role.
-# writable: paths the role may edit (enforced as opencode permissions, stated in Claude agents).
-# The role body (instructions) lives in agents/roles/<role>.md.
-
-[architect]
-description = "Owns system requirements, architecture and interfaces; decides how features are split."
-weights  = ["standard", "comprehensive"]
-model    = { L1 = "opus", L2 = "opus", L3 = "opus", L4 = "qwen" }
-effort   = { L1 = "max", L2 = "max", L3 = "max", L4 = "default" }
-writable = ["docs/output/architecture.md", "docs/output/interface_control.md", "docs/output/decision_record.md", "docs/output/verification_plan.md"]
+# Single source for roles. tools/new_project.py renders one agent file per role and team level:
+#   Claude model -> .claude/agents/<role>.md    free model -> .opencode/agents/<role>.md    none -> no file
+# Model keys (resolved in kit_config.toml): opus | sonnet | haiku | qwen | deepseek | none
+# Effort: max | high | medium | low | default.  option: role exists only with that option.
+# writable: edit permission (enforced for opencode; stated for Claude). "!path" = excluded.
+# Instructions: agents/roles/<role>.md. In L1-L3 the main Claude session (Opus) is the architect.
 
 [spec-writer]
-description = "Writes feature specifications (EARS requirements, ports, behaviour, test plan); in L3 also the locked acceptance testbench."
-weights  = ["light", "standard", "comprehensive"]
+description = "Writes short feature specs (requirements with IDs, interface, behaviour, tests); in L3 also the locked acceptance testbench."
 model    = { L1 = "opus", L2 = "opus", L3 = "sonnet", L4 = "qwen" }
 effort   = { L1 = "high", L2 = "high", L3 = "high", L4 = "default" }
-writable = ["docs/output/specs/**", "hw/tb/acceptance/**", "tracking/tasks/*.md"]
+writable = ["docs/specs/**", "hw/tb/acceptance/**", "tracking/tasks/*.md"]
 
 [rtl-designer]
-description = "Implements RTL for one feature from its spec and task card."
-weights  = ["light", "standard", "comprehensive"]
+description = "Implements the RTL of one feature from its spec and task card."
 model    = { L1 = "sonnet", L2 = "qwen", L3 = "qwen", L4 = "qwen" }
 effort   = { L1 = "medium", L2 = "default", L3 = "default", L4 = "default" }
-escalate_hard = "sonnet"    # L2: features tagged difficulty: hard go to this model
 writable = ["hw/rtl/**", "tracking/tasks/*.result.md"]
 
 [verification]
-description = "Writes the feature testbench from the spec without reading the RTL; runs simulation; reports per requirement ID."
-weights  = ["light", "standard", "comprehensive"]
+description = "Writes the feature testbench from the spec without reading the RTL; runs simulation."
 model    = { L1 = "sonnet", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
 effort   = { L1 = "medium", L2 = "default", L3 = "default", L4 = "default" }
 writable = ["hw/tb/**", "!hw/tb/acceptance/**", "tracking/tasks/*.result.md"]
 cannot_read = ["hw/rtl/<feature>/**"]
 
 [reviewer]
-description = "Independent review of one feature against spec, gate results and derived requirements. Does not edit design files."
-weights  = ["light", "standard", "comprehensive"]
+description = "Independent review of one feature against spec, check results and derived requirements; does not edit design files."
 model    = { L1 = "opus", L2 = "sonnet", L3 = "deepseek", L4 = "deepseek" }
 effort   = { L1 = "high", L2 = "high", L3 = "default", L4 = "default" }
 writable = ["tracking/tasks/*.review.md"]
 
 [vivado-runner]
-description = "Runs Vivado/simulation flows and returns short summaries instead of raw logs."
-weights  = ["light", "standard", "comprehensive"]
+description = "Runs Vivado/simulation flows and returns short summaries instead of logs."
 model    = { L1 = "haiku", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
 effort   = { L1 = "default", L2 = "low", L3 = "low", L4 = "low" }
 writable = ["build/**", "tracking/tasks/*.result.md"]
 
+[doc-writer]
+description = "Writes the Turkish README (and hardware test procedure) from specs and RTL names."
+model    = { L1 = "sonnet", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
+effort   = { L1 = "medium", L2 = "low", L3 = "low", L4 = "low" }
+writable = ["README.md", "docs/hardware_test.md"]
+
 [wiki-maintainer]
-description = "Maintains llm/wiki: ingests sources, adds purpose/notes to codemap cards, runs wiki lint."
-weights  = ["standard", "comprehensive"]
+description = "Maintains llm/wiki: ingests sources, fills codemap notes, runs wiki lint."
+option   = "wiki"
 model    = { L1 = "haiku", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
 effort   = { L1 = "default", L2 = "low", L3 = "low", L4 = "low" }
 writable = ["llm/wiki/**"]
 
-[doc-writer]
-description = "Writes human documentation in Turkish (user guide, knowledge notes, hardware test procedure) from specs and interface docs."
-weights  = ["light", "standard", "comprehensive"]
-model    = { L1 = "sonnet", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
-effort   = { L1 = "medium", L2 = "low", L3 = "low", L4 = "low" }
-writable = ["docs/output/ip_user_guide.md", "docs/output/knowledge/**", "docs/output/hardware_test_procedure.md"]
-
-[doc-checker]
-description = "Checks human documentation against specs after the script check has passed."
-weights  = ["standard", "comprehensive"]
-model    = { L1 = "haiku", L2 = "sonnet", L3 = "qwen", L4 = "none" }
-effort   = { L1 = "default", L2 = "medium", L3 = "default", L4 = "default" }
-writable = ["tracking/tasks/*.review.md"]
-
-[exit-reviewer]
-description = "Milestone exit review: regression, coverage, derived requirements, problem reports, frozen paths."
-weights  = ["standard", "comprehensive"]
-model    = { L1 = "opus", L2 = "opus", L3 = "opus", L4 = "none" }
-effort   = { L1 = "max", L2 = "max", L3 = "max", L4 = "default" }
-writable = ["tracking/**/exit_record.md"]
+[senior-engineer]
+description = "Takes over escalated task cards; in L2 implements features tagged difficulty hard."
+model    = { L1 = "none", L2 = "sonnet", L3 = "sonnet", L4 = "none" }
+effort   = { L1 = "default", L2 = "high", L3 = "high", L4 = "default" }
+writable = ["hw/**", "tracking/**"]

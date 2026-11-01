@@ -9,9 +9,9 @@ ip_vendor = "{{IP_VENDOR}}"
 ip_version = "1.0"
 
 [profile]
-weight = "{{WEIGHT}}"
 team = "{{TEAM}}"
 deliverables = [{{DELIVERABLES_TOML}}]
+options = [{{OPTIONS_TOML}}]
 dispatch = "{{DISPATCH}}"
 max_attempts = {{MAX_ATTEMPTS}}
 
@@ -28,5 +28,6 @@ verilator_version = "{{VERILATOR_VERSION}}"
 
 [locks]
 # Paths that change only with user approval (checked by `make check-locks`).
+# Add delivered paths here to freeze them (e.g. "hw/rtl/uart/**").
 paths = [{{LOCKS_TOML}}]
 base_ref = "main"

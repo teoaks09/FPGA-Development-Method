@@ -6,7 +6,9 @@
 opus   = "opus"
 sonnet = "sonnet"
 haiku  = "haiku"
-# opencode model ids in provider/model form (PILOT: fill with the ids `opencode models` prints)
+# opencode model ids in provider/model form: copy them from `opencode models` (SETUP.md §4).
+# Free models are keyed by role in agents/roles.toml (qwen, deepseek); add more keys when new free
+# models are connected, then reference them in roles.toml.
 qwen     = "corp/general"
 deepseek = "corp/code"
 
@@ -22,6 +24,8 @@ haiku    = "Claude Haiku 5.5"
 [tools]
 vivado_version = "2026.1"            # ask the user; never search the file system
 vivado_path    = "/tools/Xilinx/Vivado/2026.1"
+vitis_path     = "/tools/Xilinx/Vitis/2026.1"     # optional (Zynq PS / HLS)
+petalinux_path = ""                               # optional, set when PetaLinux is installed
 ross_version   = "2026.9.1"          # AMD Ross release for NEW projects (existing projects keep their pin)
 # Vivado MCP server binaries are installed side by side, one folder per Ross version:
 #   <ross_mcp_root>/<version>/vivado-mcp-server-linux-amd64-<version>

@@ -6,11 +6,9 @@ Read this first. One line per page.
 <!-- codemap:begin -->
 - (none yet)
 <!-- codemap:end -->
-<!-- @if weight=comprehensive -->
 
 ## Xilinx IP
 
 ## Protocols
 
 ## Lessons
-<!-- @end -->

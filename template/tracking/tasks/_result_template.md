@@ -7,7 +7,7 @@ model: <model id>
 ---
 
 ## Gate results
-<!-- paste build/gates/<feature>.txt unchanged -->
+<!-- paste build/check/<feature>.txt unchanged -->
 
 ## Changed files
 -

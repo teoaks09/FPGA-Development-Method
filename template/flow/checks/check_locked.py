@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Fail if locked paths changed on this branch compared with the base branch.
 
-Locked paths: project.toml [locks].paths, hw/tb/acceptance/** for team L3, and the
-"Frozen paths" listed in every tracking/*/exit_record.md. On the base branch itself
-nothing is checked (the user merges approved changes there).
+Locked paths: project.toml [locks].paths (add paths there to freeze delivered work) and
+hw/tb/acceptance/** for team L3. On the base branch nothing is checked (the user merges
+approved changes there).
 """
 import fnmatch
-import re
 import subprocess
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11: pip install tomli
+    import tomli as tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,10 +26,6 @@ def locked_patterns(config: dict) -> list:
     patterns = list(config.get("locks", {}).get("paths", []))
     if config["profile"]["team"] == "L3":
         patterns.append("hw/tb/acceptance/**")
-    for record in ROOT.glob("tracking/*/exit_record.md"):
-        section = re.search(r"## Frozen paths\n(.*?)(\n## |\Z)", record.read_text(), re.S)
-        if section:
-            patterns += re.findall(r"^- `?([^`\s]+)`?", section.group(1), re.M)
     return patterns
 
 

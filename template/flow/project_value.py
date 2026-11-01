@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-"""Print one value from project.toml, e.g. `project_value.py profile.weight`."""
+"""Print one value from project.toml, e.g. `project_value.py profile.team`."""
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11: pip install tomli
+    import tomli as tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,7 +24,7 @@ def get(dotted: str):
 
 def feature_clock(feature: str):
     """Target clock of a feature: spec frontmatter clock_mhz, else project default."""
-    spec = ROOT / "docs/output/specs" / f"{feature}.md"
+    spec = ROOT / "docs/specs" / f"{feature}.md"
     if feature and spec.exists():
         for line in spec.read_text().splitlines()[:12]:
             if line.startswith("clock_mhz:") and line.split(":", 1)[1].strip().replace(".", "").isdigit():

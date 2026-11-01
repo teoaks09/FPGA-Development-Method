@@ -12,7 +12,11 @@ done
 [[ -n "$agent" ]] || { echo "no agent file for role $role"; exit 1; }
 model_id="$(sed -n 's/^model:[[:space:]]*//p' "$agent" | head -1)"
 model_name="$(python3 - "$model_id" <<'PY'
-import sys, tomllib
+import sys
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 models = tomllib.load(open("project.toml", "rb")).get("models", {})
 ids, names = models.get("ids", {}), models.get("names", {})
 alias = next((k for k, v in ids.items() if v == sys.argv[1]), sys.argv[1])

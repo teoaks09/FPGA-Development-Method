@@ -39,77 +39,76 @@ module tb_axil_master #(
         m_axil_rready  = 1'b0;
     end
 
-    // Address and data are presented together; each channel completes independently.
+    // Drives on the falling edge, samples handshakes on the rising edge: race-free in every
+    // simulator used by the kit (xsim, iverilog and the lint tool). No break/continue.
     task automatic write(input logic [ADDR_WIDTH-1:0] address, input logic [DATA_WIDTH-1:0] data,
                          output logic [1:0] response, output bit timed_out);
-        bit address_done = 1'b0;
-        bit data_done = 1'b0;
-        int unsigned cycles = 0;
-        timed_out = 1'b0;
-        @(posedge clk);
-        m_axil_awaddr  <= address;
-        m_axil_awvalid <= 1'b1;
-        m_axil_wdata   <= data;
-        m_axil_wstrb   <= '1;
-        m_axil_wvalid  <= 1'b1;
-        while (!(address_done && data_done)) begin
-            @(posedge clk);
-            if (m_axil_awvalid && m_axil_awready) begin
-                address_done = 1'b1;
-                m_axil_awvalid <= 1'b0;
-            end
-            if (m_axil_wvalid && m_axil_wready) begin
-                data_done = 1'b1;
-                m_axil_wvalid <= 1'b0;
-            end
-            if (++cycles == TIMEOUT_CYCLES) begin
-                timed_out = 1'b1;
-                break;
-            end
-        end
-        m_axil_awvalid <= 1'b0;
-        m_axil_wvalid  <= 1'b0;
-        m_axil_bready  <= 1'b1;
+        bit address_done;
+        bit data_done;
+        bit response_done;
+        int unsigned cycles;
+        address_done = 1'b0;
+        data_done = 1'b0;
+        response_done = 1'b0;
         cycles = 0;
-        while (!timed_out) begin
+        timed_out = 1'b0;
+        response = 2'b00;
+        @(negedge clk);
+        m_axil_awaddr  = address;
+        m_axil_awvalid = 1'b1;
+        m_axil_wdata   = data;
+        m_axil_wstrb   = '1;
+        m_axil_wvalid  = 1'b1;
+        m_axil_bready  = 1'b1;
+        while (!(address_done && data_done && response_done) && !timed_out) begin
             @(posedge clk);
-            if (m_axil_bvalid) begin
+            if (m_axil_awvalid && m_axil_awready) address_done = 1'b1;
+            if (m_axil_wvalid && m_axil_wready) data_done = 1'b1;
+            if (m_axil_bvalid && m_axil_bready) begin
                 response = m_axil_bresp;
-                break;
+                response_done = 1'b1;
             end
-            if (++cycles == TIMEOUT_CYCLES) timed_out = 1'b1;
+            cycles++;
+            if (cycles == TIMEOUT_CYCLES) timed_out = 1'b1;
+            @(negedge clk);
+            if (address_done) m_axil_awvalid = 1'b0;
+            if (data_done) m_axil_wvalid = 1'b0;
         end
-        m_axil_bready <= 1'b0;
+        m_axil_awvalid = 1'b0;
+        m_axil_wvalid  = 1'b0;
+        m_axil_bready  = 1'b0;
     endtask
 
     task automatic read(input logic [ADDR_WIDTH-1:0] address, output logic [DATA_WIDTH-1:0] data,
                         output logic [1:0] response, output bit timed_out);
-        int unsigned cycles = 0;
-        timed_out = 1'b0;
-        @(posedge clk);
-        m_axil_araddr  <= address;
-        m_axil_arvalid <= 1'b1;
-        while (1) begin
-            @(posedge clk);
-            if (m_axil_arready) break;
-            if (++cycles == TIMEOUT_CYCLES) begin
-                timed_out = 1'b1;
-                break;
-            end
-        end
-        m_axil_arvalid <= 1'b0;
-        m_axil_rready  <= 1'b1;
+        bit address_done;
+        bit data_done;
+        int unsigned cycles;
+        address_done = 1'b0;
+        data_done = 1'b0;
         cycles = 0;
-        while (!timed_out) begin
+        timed_out = 1'b0;
+        data = '0;
+        response = 2'b00;
+        @(negedge clk);
+        m_axil_araddr  = address;
+        m_axil_arvalid = 1'b1;
+        m_axil_rready  = 1'b1;
+        while (!(address_done && data_done) && !timed_out) begin
             @(posedge clk);
-            if (m_axil_rvalid) begin
+            if (m_axil_arvalid && m_axil_arready) address_done = 1'b1;
+            if (m_axil_rvalid && m_axil_rready) begin
                 data = m_axil_rdata;
                 response = m_axil_rresp;
-                break;
+                data_done = 1'b1;
             end
-            if (++cycles == TIMEOUT_CYCLES) timed_out = 1'b1;
+            cycles++;
+            if (cycles == TIMEOUT_CYCLES) timed_out = 1'b1;
+            @(negedge clk);
+            if (address_done) m_axil_arvalid = 1'b0;
         end
-        m_axil_rready <= 1'b0;
+        m_axil_arvalid = 1'b0;
+        m_axil_rready  = 1'b0;
     endtask
 endmodule
 `default_nettype wire

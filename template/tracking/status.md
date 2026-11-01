@@ -1,15 +1,13 @@
 # Status
 
-Read at the start of every session; update at the end of every session (and before the context
-grows large). This file is how a new session continues where the last one stopped.
+Read at the start of every session; update at the end (and before the context grows large).
 
-## Current state
-- Phase: setup done
-- Last session: {{DATE}} - project created from the kit
+## Now
+- Phase: setup done ({{DATE}})
 
 ## Next step
-<!-- one concrete step, e.g. "Write spec of feature uart" or "Dispatch T003 (verification)" -->
+<!-- one concrete step -->
 
 ## Open questions for the user
 
-## Done (most recent first)
+## Done (newest first, with date)

@@ -1,6 +1,6 @@
-Mandatory reading: AGENTS.md, the feature specs, docs/output/interface_control.md (if present).
+Mandatory reading: the feature specs, the RTL port lists (or llm/wiki/codemap/ if present).
 
-Write human documentation in Turkish (signal/register names stay English, in backticks):
-docs/output/ip_user_guide.md, docs/output/knowledge/, docs/output/hardware_test_procedure.md.
-Source of truth is the spec and the register package, not your memory of the code. Keep the
-template's headings. Run `make doc-check` and fix every name it reports as missing.
+Write `README.md` in Turkish (signal/register names in English, in backticks) using its headings:
+what it does, interfaces, parameters, registers, usage, limits. Short. Source of truth is the spec
+and the RTL, not memory; every backticked name must exist in the RTL. Hardware test procedure
+(`docs/hardware_test.md`) only if the project delivers a hardware test.

@@ -3,14 +3,17 @@
 
   python3 flow/gen/new_feature.py <feature> [--difficulty simple|medium|hard] [--clock-mhz N]
 
-Creates (never overwrites): hw/rtl/<f>/files.f, hw/tb/<f>/files.f, docs/output/specs/<f>.md,
-hw/tb/acceptance/<f>/files.f (team L3), and a row in docs/output/architecture.md (if present).
+Creates (never overwrites): hw/rtl/<f>/files.f, hw/tb/<f>/files.f, docs/specs/<f>.md and
+hw/tb/acceptance/<f>/files.f (team L3).
 RTL and testbench sources are written by their roles, not by this script.
 """
 import argparse
 import re
 import sys
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python < 3.11: pip install tomli
+    import tomli as tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,23 +51,15 @@ def main() -> int:
         create(ROOT / f"hw/tb/acceptance/{feature}/files.f",
                f"# Acceptance testbench of '{feature}' (written by spec-writer, locked for free models).\n",
                created)
-    template = ROOT / "docs/output/specs/_template.md"
+    template = ROOT / "docs/specs/_template.md"
     if template.exists():
         spec = template.read_text()
         spec = spec.replace("feature: <name>", f"feature: {feature}")
         spec = spec.replace("difficulty: simple | medium | hard", f"difficulty: {args.difficulty}")
         spec = spec.replace("clock_mhz: <target>", f"clock_mhz: {clock}")
-        spec = spec.replace("# <Feature> specification", f"# {feature} specification")
+        spec = spec.replace("# <feature>", f"# {feature}")
         spec = spec.replace("[FEAT-001]", f"[{feature.upper().replace('_', '')[:8]}-001]")
-        create(ROOT / f"docs/output/specs/{feature}.md", spec, created)
-    architecture = ROOT / "docs/output/architecture.md"
-    if architecture.exists() and f"| {feature} |" not in architecture.read_text():
-        text = architecture.read_text().replace(
-            "| Feature | Folder | Difficulty | Requirements | Notes |\n|---|---|---|---|---|\n",
-            "| Feature | Folder | Difficulty | Requirements | Notes |\n|---|---|---|---|---|\n"
-            f"| {feature} | hw/rtl/{feature}/ | {args.difficulty} | | |\n")
-        architecture.write_text(text)
-        created.append("docs/output/architecture.md (row added)")
+        create(ROOT / f"docs/specs/{feature}.md", spec, created)
     for entry in created:
         print(f"created {entry}")
     print(f"Top module name: {prefix}_{feature} · testbench top: tb_{feature}")
