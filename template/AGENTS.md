@@ -32,6 +32,10 @@ New files go to the extension points only (new feature folders, new docs under d
 
 ## Working rules
 
+- **Sessions:** start by reading `tracking/status.md`; end by updating it (state, next step, open
+  questions). Start a new session per milestone or when the context grows large - knowledge lives
+  in files, not in the session.
+
 - Talk to the user in Turkish, briefly. All project files are English, except human docs
   (`docs/output/ip_user_guide.md`, `docs/output/knowledge/`, `docs/output/hardware_test_procedure.md`)
   which are Turkish; signal and register names stay English.

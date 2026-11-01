@@ -225,6 +225,16 @@ Claude doldurur: `AGENTS.md` proje bloğu, `docs/input/system_requirements.md` (
 `docs/output/` ve özellik spesifikasyonları. Planlama kaydı kullanıldıysa her bölümün nereye taşındığı
 bir tabloyla gösterilir, onaydan sonra kayıt silinir.
 
+### 4.2a Oturumlar: kuran oturum ve yapan oturumlar
+
+- **Kurulum oturumu** (keşif + kurulum + dokümanlar) bittiğinde kapanır. Son işi
+  `tracking/status.md`'ye "sıradaki adım"ı yazmaktır.
+- **İş oturumları** proje klasöründe yeni bir Claude Code oturumudur. `CLAUDE.md` → `AGENTS.md`
+  otomatik yüklenir; oturum `tracking/status.md`'yi okur ve kaldığı yerden devam eder. Kullanıcının
+  yazacağı prompt tek satırdır ("devam et" / "M1'e başla"); uzun prompt gerekmez, çünkü her şey dosyalarda.
+- Yeni iş oturumu: her milestone'da, light'ta birkaç özellikte bir ve bağlam büyüdüğünde (önce status güncellenir).
+- L4'te iş oturumu Claude değil, opencode/VS Code'dur; ilk mesaj `tracking/start_prompt.md`'dir.
+
 ### 4.3 Milestone'lar (standard, comprehensive)
 
 - **M0 Altyapı:** flow'lar çalışıyor, TB çerçevesi, ilk register bloğu, kapılar ve riskli varsayımların

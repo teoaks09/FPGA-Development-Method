@@ -213,6 +213,10 @@ when = ["team=L2,L3,L4"]
 path = "tracking/tasks/_review_template.md"
 when = ["team=L2,L3,L4"]
 [[path]]
+path = "tracking/status.md"
+show = "tracking/status.md"
+where = "Where the project stands and the next step: read at session start, update at session end"
+[[path]]
 path = "tracking/model_scorecard.md"
 when = ["team=L2,L3,L4"]
 [[path]]
