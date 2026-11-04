@@ -1,7 +1,8 @@
 # Dış inceleme prompt'u
 
 Aşağıdaki metni diğer modellere (ChatGPT, Gemini, Grok, DeepSeek, ...) ver; yanına
-`METHODOLOGY.md`'yi (gerekirse `SETUP.md`, `manifest.toml`, `agents/roles.toml`) ekle.
+`METHODOLOGY.md`, `agents/roles.toml` ve örnek bir üretilmiş `AGENTS.md`'yi ekle (repo erişimi olan
+modele GitHub linki de verilebilir). Cevapları `reviews/<model>.md` olarak sakla.
 
 ---
 
@@ -9,7 +10,9 @@ You are reviewing a methodology kit for developing AMD/Xilinx FPGA designs with 
 Context: one experienced FPGA engineer (unit lead), Ubuntu workstation, Vivado, Claude Code (Pro
 subscription, usage limits run out quickly), opencode with free models (Qwen3.8 Flash Next: reliable
 logic, weak FPGA hygiene; DeepSeek Flash v4.1: good hygiene and documentation, frequent logic errors),
-AMD Ross (Vivado MCP server + agent skills). Some projects move to an internal network with free
+AMD Ross (Vivado MCP server + agent skills, installed once per machine). Tool versions are not
+pinned; tools are updated by hand now and then. The internal model server is shared and its speed
+varies with load (seconds to minutes per call). Some projects move to an internal network with free
 models and Vivado but no Claude and no internet. Testbenches are SystemVerilog, never cocotb.
 The user wants light documentation and principle-level rules (rigid rules age quickly as AI improves),
 but a standard folder structure and generated agents/skills/AGENTS.md.
