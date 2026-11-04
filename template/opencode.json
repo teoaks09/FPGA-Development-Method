@@ -3,8 +3,7 @@
   "permission": {
     "edit": {
       "docs/requirements.md": "deny",
-      "docs/coding_rules.md": "deny",
-      "third_party/**": "deny"
+      "docs/coding_rules.md": "deny"
     },
     "bash": {
       "*": "ask",
@@ -12,20 +11,6 @@
       "git status*": "allow",
       "git diff*": "allow",
       "git log*": "allow"
-    }
-  },
-  "mcp": {
-    "vivado": {
-      "type": "local",
-      "command": [
-        "{{ROSS_MCP_BINARY}}"
-      ],
-      "enabled": true
-    },
-    "amd-doc-search": {
-      "type": "remote",
-      "url": "{{AMD_DOC_SEARCH_URL}}",
-      "enabled": true
     }
   }
 }

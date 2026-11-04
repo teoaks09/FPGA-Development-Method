@@ -1,33 +1,33 @@
 # Single source for roles. tools/new_project.py renders one agent file per role and team level:
 #   Claude model -> .claude/agents/<role>.md    free model -> .opencode/agents/<role>.md    none -> no file
 # Model keys (resolved in kit_config.toml): opus | sonnet | haiku | qwen | deepseek | none
-# Effort: max | high | medium | low | default.  option: role exists only with that option.
+# Effort: max | high | medium | low | default (Claude only). Free models: kit_config [models.variants].  option: role exists only with that option.
 # writable: edit permission (enforced for opencode; stated for Claude). "!path" = excluded.
 # Instructions: agents/roles/<role>.md. In L1-L3 the main Claude session (Opus) is the architect.
 
 [spec-writer]
 description = "Writes short feature specs (requirements with IDs, interface, behaviour, tests); in L3 also the locked acceptance testbench."
 model    = { L1 = "opus", L2 = "opus", L3 = "sonnet", L4 = "qwen" }
-effort   = { L1 = "high", L2 = "high", L3 = "high", L4 = "default" }
+effort   = { L1 = "high", L2 = "high", L3 = "high", L4 = "high" }
 writable = ["docs/specs/**", "hw/tb/acceptance/**", "tracking/tasks/*.md"]
 
 [rtl-designer]
 description = "Implements the RTL of one feature from its spec and task card."
 model    = { L1 = "sonnet", L2 = "qwen", L3 = "qwen", L4 = "qwen" }
-effort   = { L1 = "medium", L2 = "default", L3 = "default", L4 = "default" }
+effort   = { L1 = "medium", L2 = "high", L3 = "high", L4 = "high" }
 writable = ["hw/rtl/**", "tracking/tasks/*.result.md"]
 
 [verification]
 description = "Writes the feature testbench from the spec without reading the RTL; runs simulation."
 model    = { L1 = "sonnet", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
-effort   = { L1 = "medium", L2 = "default", L3 = "default", L4 = "default" }
+effort   = { L1 = "medium", L2 = "high", L3 = "high", L4 = "high" }
 writable = ["hw/tb/**", "!hw/tb/acceptance/**", "tracking/tasks/*.result.md"]
 cannot_read = ["hw/rtl/<feature>/**"]
 
 [reviewer]
 description = "Independent review of one feature against spec, check results and derived requirements; does not edit design files."
 model    = { L1 = "opus", L2 = "sonnet", L3 = "deepseek", L4 = "deepseek" }
-effort   = { L1 = "high", L2 = "high", L3 = "default", L4 = "default" }
+effort   = { L1 = "high", L2 = "high", L3 = "high", L4 = "high" }
 writable = ["tracking/tasks/*.review.md"]
 
 [vivado-runner]

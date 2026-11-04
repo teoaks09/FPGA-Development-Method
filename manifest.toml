@@ -15,20 +15,18 @@ path = "README.md"
 where = "User documentation (Turkish): what it does, interfaces, registers, usage"
 [[path]]
 path = "project.toml"
-where = "Profile, tool versions, models, locked paths"
+where = "Profile, models, locked paths"
 [[path]]
 path = "Makefile"
 where = "Entry points (`make help`)"
 [[path]]
 path = ".gitignore"
 [[path]]
-path = ".mcp.json"
-[[path]]
 path = ".claude/settings.json"
 [[path]]
 path = ".claude/skills/new-feature/"
 show = ".claude/skills/"
-where = "Skills: project skills + AMD Ross skills (linked from third_party/)"
+where = "Project skills (AMD Ross skills are installed globally)"
 [[path]]
 path = ".claude/skills/deliver/"
 [[path]]
@@ -146,8 +144,6 @@ when = ["option=wiki"]
 [[path]]
 path = "flow/git/commit.sh"
 when = ["team=L2,L3,L4"]
-[[path]]
-path = "flow/tools/ross_setup.sh"
 
 [[path]]
 path = "tracking/status.md"

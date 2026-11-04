@@ -9,8 +9,6 @@
       "Bash(git merge*)"
     ],
     "deny": [
-      "Edit(third_party/**)",
-      "Write(third_party/**)",
       "Read(llm/raw/local/**)"
     ]
   }

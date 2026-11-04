@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# One-time machine check (SETUP.md). Reads paths and model ids from kit_config.toml.
+# Machine check (SETUP.md). Reads model ids and the Ross folder from kit_config.toml.
+# Versions are not pinned; the check shows what is installed.
 # Prints OK / MISSING / NOTE per item and MACHINE_RESULT: PASS|FAIL (only required items count).
 set -u
 kit="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,6 +18,7 @@ print(value)
 PY
 }
 export KIT="$kit"
+[[ -f "$kit/kit_config.toml" ]] || { echo "MISSING  kit_config.toml (cp kit_config.example.toml kit_config.toml)"; echo "MACHINE_RESULT: FAIL"; exit 1; }
 fail=0
 ok()   { echo "OK       $*"; }
 miss() { echo "MISSING  $*"; fail=1; }
@@ -28,11 +30,10 @@ python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/de
     || { python3 -c 'import tomli' 2>/dev/null && ok "python (tomli fallback)" || miss "python >= 3.11 or pip install tomli"; }
 for tool in git make bash; do have "$tool" && ok "$tool" || miss "$tool"; done
 
-vivado="$(cfg tools.vivado_path)"
-[[ -x "$vivado/bin/vivado" ]] && ok "vivado $("$vivado/bin/vivado" -version 2>/dev/null | head -1)" || miss "vivado at $vivado (kit_config.toml tools.vivado_path)"
-have xsim && ok "xsim on PATH" || note "xsim not on PATH: source $vivado/settings64.sh in ~/.bashrc"
-vitis="$(cfg tools.vitis_path)"
-[[ -n "$vitis" && -d "$vitis" ]] && ok "vitis at $vitis" || note "vitis not found (only needed for Zynq PS / HLS)"
+have vivado && ok "vivado $(vivado -version 2>/dev/null | head -1 | awk '{print $2}') at $(dirname "$(dirname "$(command -v vivado)")")" \
+    || miss "vivado not on PATH (source <Vivado>/settings64.sh in ~/.bashrc)"
+have xsim && ok "xsim on PATH" || miss "xsim not on PATH"
+have vitis || have v++ && ok "vitis" || note "vitis not on PATH (only needed for Zynq PS / HLS)"
 petalinux="$(cfg tools.petalinux_path)"
 [[ -n "$petalinux" && -d "$petalinux" ]] && ok "petalinux at $petalinux" || note "petalinux not set (only for Linux on Zynq)"
 
@@ -51,12 +52,12 @@ else
     miss "opencode"
 fi
 
-ross_root="$(cfg tools.ross_mcp_root)"; ross_root="${ross_root/#\~/$HOME}"
-version="$(cfg tools.ross_version)"
-binary="$ross_root/$version/$(cfg tools.ross_mcp_binary | sed "s/{version}/$version/")"
-[[ -x "$binary" ]] && ok "ross mcp $binary" || miss "ross mcp server $binary"
-[[ -d "$HOME/.claude/skills" ]] && ls "$HOME/.claude/skills" 2>/dev/null | grep -qE "^(vivado|hls|hw)-" \
-    && echo "WARN     Ross skills installed globally in ~/.claude/skills - remove them (they load twice)" || ok "no global Ross skills"
+ross="$(cfg tools.ross_dir)"; ross="${ross/#\~/$HOME}"
+[[ -x "$ross/vivado-mcp-server" ]] && ok "ross mcp server $ross/vivado-mcp-server" || miss "ross mcp server at $ross/vivado-mcp-server"
+[[ -d "$ross/ross-ai-assistant/.git" ]] && ok "ross skills $(git -C "$ross/ross-ai-assistant" log -1 --format=%cs)" || miss "ross skills clone at $ross/ross-ai-assistant"
+n="$(find "$HOME/.config/opencode/skills" -maxdepth 1 -type l 2>/dev/null | wc -l)"
+[[ "$n" -gt 0 ]] && ok "opencode ross skill links: $n" || note "no skills in ~/.config/opencode/skills (tools/update_ross.sh)"
+grep -q '"vivado"' "$HOME/.config/opencode/opencode.json"* 2>/dev/null && ok "opencode mcp vivado configured" || note "opencode mcp vivado not in ~/.config/opencode/opencode.json(c)"
 
 if have gh && gh auth status >/dev/null 2>&1; then ok "github (gh)"
 elif ssh -o BatchMode=yes -o ConnectTimeout=5 -T git@github.com 2>&1 | grep -q "successfully authenticated"; then ok "github (ssh)"

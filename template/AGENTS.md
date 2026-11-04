@@ -60,7 +60,7 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
 | `make sim FEATURE=<f>` | xsim (`SIM=verilator` or `SIM=iverilog` for fast runs); needs `TB_RESULT: PASS` |
 | `make ooc FEATURE=<f>` | out-of-context synthesis + place & route at the spec clock |
 | `make trace` | optional: requirements without tests, undefined IDs |
-| `make env-check` | installed Vivado/Ross/models vs `project.toml` |
+| `make env-check` | tools and models on this machine |
 <!-- @if deliverable=ip -->
 | `make ip FEATURE=<f>` | package as Vivado custom IP and integration-test it |
 <!-- @end -->
@@ -80,8 +80,10 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
 
 - Only through files: task card `tracking/tasks/Tnnn.md` → result card `Tnnn.result.md`
   (templates in `tracking/tasks/`). Each task on its own branch.
-- Run: `opencode run --auto -m <model> --agent <role> "Execute tracking/tasks/Tnnn.md"`
-  (`--auto` approves what is not denied; the agent's path permissions still apply).
+- Run: `opencode run --auto -m <model#variant> --agent <role> "Execute tracking/tasks/Tnnn.md" < /dev/null`
+  with `-m` from the role table (`--auto` approves what is not denied; path permissions still apply).
+  The internal server can be slow under load: run it in the background and wait (minutes, no
+  short timeout); a slow answer is not a failure.
 - Commit: `flow/git/commit.sh <role> <task> "<message>"` (adds Model/Role/Task trailers).
 <!-- @if team=L2,L3 -->
 - After {{MAX_ATTEMPTS}} failed attempts: escalate to `senior-engineer` (Sonnet), then the main session (Opus).
@@ -94,9 +96,9 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
 
 ## Environment
 
-- Vivado {{VIVADO_VERSION}} at `{{VIVADO_PATH}}` (do not search for it) · part `{{PART}}` · prefix `{{PREFIX}}_`
-- AMD Ross {{ROSS_VERSION}}, pinned in this project: skills from `third_party/ross-ai-assistant`
-  linked into `.claude/skills/` (`flow/tools/ross_setup.sh`), Vivado MCP server of the same version
-  (`.mcp.json`, `opencode.json`). Never install Ross skills globally.
-  AMD documents: `amd-doc-search` with the document number in the query (e.g. "PG203 ...").
+- Part `{{PART}}` · prefix `{{PREFIX}}_`. Tools are whatever this machine has (not pinned):
+  Vivado from PATH (do not search the file system); `make env-check` lists versions.
+- AMD Ross is installed on the machine, not in the project: Vivado MCP server `vivado` and
+  `amd-doc-search` (AMD documents; put the document number in the query, e.g. "PG203 ...") are
+  configured globally for Claude Code and opencode, and so are the Ross skills.
   `vivado-revision-control` is not the build method; use it only to export GUI changes.

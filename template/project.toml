@@ -15,15 +15,8 @@ options = [{{OPTIONS_TOML}}]
 dispatch = "{{DISPATCH}}"
 max_attempts = {{MAX_ATTEMPTS}}
 
-[tools]
-vivado_version = "{{VIVADO_VERSION}}"
-vivado_path = "{{VIVADO_PATH}}"
-ross_version = "{{ROSS_VERSION}}"
-verilator_version = "{{VERILATOR_VERSION}}"
-
+# Tools (Vivado, Verilator, Ross, ...) are not pinned: the project uses what the machine has.
 # Model aliases -> ids (used in agent files) and names (recorded in commit trailers).
-# When the platform changes the model behind an alias, update [models.names] and start a new
-# scorecard row; a project resumed later re-checks this with flow/checks/env_check.sh.
 {{MODELS_TOML}}
 
 [locks]

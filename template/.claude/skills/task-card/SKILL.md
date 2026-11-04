@@ -4,13 +4,15 @@ description: Hand a piece of work to a free model (opencode) with a task card, a
 ---
 
 Write
-1. Next free ID in tracking/tasks/ (T001...). Copy `_template.md`; fill role, model (copy the
-   `model:` line of the role's agent file), difficulty, branch.
+1. Next free ID in tracking/tasks/ (T001...). Copy `_template.md`; fill role, model (the `-m`
+   value of the role in the AGENTS.md role table; raise or lower the variant for the task's
+   difficulty), difficulty, branch.
 2. Inputs: only what the role needs. Writable paths: as narrow as possible.
 3. Dispatch per `profile.dispatch` in project.toml:
    manual - give the user exactly one line:
-   `opencode run --auto -m <model> --agent <role> "Execute tracking/tasks/T012.md"`
-   auto - run that command yourself.
+   `opencode run --auto -m <model#variant> --agent <role> "Execute tracking/tasks/T012.md" < /dev/null`
+   auto - run that command yourself in the background and wait for it; the internal server can
+   take many minutes under load (not a failure). Record start/end time.
 
 Process
 1. Read only the result card and `build/check/<feature>.txt`, then re-run `make check FEATURE=<f>`

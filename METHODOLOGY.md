@@ -28,8 +28,8 @@ seviyesine göre yürütür.
 | `manifest.toml` + `template/` | Kanonik proje ağacı ve şablonları |
 | `agents/roles.toml` + `agents/roles/*.md` | Roller: görev, yazma yetkisi, ekip seviyesine göre model ve efor (tek kaynak) |
 | `tools/new_project.py` | Projeyi profile göre kurar; profili sonradan değiştirir (`--existing`) |
-| `tools/check_machine.sh` | Makinedeki araçları kontrol eder |
-| `kit_config.toml` | Makineye özel: model id'leri, Vivado/Ross sürüm ve yolları |
+| `tools/check_machine.sh`, `tools/update_ross.sh` | Makinedeki araçları kontrol eder; Ross'u elle günceller |
+| `kit_config.toml` | Makineye özel (git'e girmez; örneği `kit_config.example.toml`): model id'leri ve efor variant'ları, Ross klasörü |
 | `BENCHMARK.md`, `REVIEW_PROMPT.md` | Pilot ölçümü ve dış inceleme için |
 
 ## 3. Profil
@@ -65,8 +65,8 @@ Her projede aynı yollar vardır; profil yalnızca var/yok kararını verir. Bir
 yerindedir ya da yoktur. Kesin liste: `manifest.toml`.
 
 ```
-AGENTS.md  CLAUDE.md  README.md (TR)  project.toml  Makefile  .mcp.json  opencode.json
-.claude/        agents/, skills/ (proje + Ross), settings.json
+AGENTS.md  CLAUDE.md  README.md (TR)  project.toml  Makefile  opencode.json
+.claude/        agents/, skills/ (proje skill'leri), settings.json
 .opencode/      agents/
 docs/           requirements.md, coding_rules.md, specs/<özellik>.md, decisions.md, external/
                 hardware_test.md (hwtest)
@@ -75,10 +75,9 @@ hw/             rtl/<özellik>/, rtl/common/, tb/<özellik>/, tb/common/ (SV çe
                 ip_package/ (ip), boards/<kart>/ (board)
 sw/ (sw)        driver/ (C + HAL), apps/
 utils/ (hwtest) host/, target/  - teslim edilmeyen test araçları
-flow/           vivado/, sim/, checks/, gen/, git/, tools/
+flow/           vivado/, sim/, checks/, gen/, git/
 tracking/       status.md (her zaman), tasks/ + model_scorecard.md (L2–L4), start_prompt.md (L4)
 llm/ (wiki)     wiki/ (SCHEMA, index, log, codemap/, ...), raw/
-third_party/    ross-ai-assistant/ (submodule, sabit sürüm)
 build/          git-ignored: Vivado projesi ve tüm çıktılar
 ```
 
@@ -88,7 +87,7 @@ build/          git-ignored: Vivado projesi ve tüm çıktılar
 1. Kullanıcı işi anlatır (belgeler sohbete değil `docs/external/`'a).
 2. Claude yalnızca **ne istendiğini** sorar: kapsam, teslim, kabul, ne kadar yaşayacağı, öncelik.
 3. Profili önerir; kullanıcı onaylar (**onay 1**).
-4. `tools/new_project.py` ile kurar, `flow/tools/ross_setup.sh`, `make env-check`, ilk commit.
+4. `tools/new_project.py` ile kurar, `make env-check`, ilk commit.
 5. `docs/requirements.md`'yi yazar; özellikleri `make feature NAME=<f>` ile açar, spec'leri yazar;
    kullanıcı spec'leri onaylar (**onay 2**). L3'te kabul testbench'lerini yazar.
 6. `tracking/status.md`'ye sıradaki adımı yazar. Oturum kapanır. L4'te başlangıç prompt'unu verir.
@@ -106,7 +105,7 @@ build/          git-ignored: Vivado projesi ve tüm çıktılar
 (**onay 3**). Büyük işte ara teslimler aynı şekilde yapılır (milestone = tag).
 
 ### 5.4 Sonradan değişiklik
-Proje aylar sonra açıldığında: `make env-check` (araç sürümleri), `status.md`, büyük projede
+Proje aylar sonra açıldığında: `make env-check` (makinedeki araçlar), `status.md`, büyük projede
 `llm/wiki/index.md`. Profil değişirse (ör. L4 → L2, wiki eklenir) `new_project.py --existing`.
 
 ## 6. Roller ve modeller
@@ -161,19 +160,19 @@ amaç/not yazar. Ücretsiz modelin derlediği bilgi `status: unverified` taşır
 - Claude Code (Pro; limit çabuk dolar → Opus az, oturumlar kısa), opencode (ücretsiz modeller),
   VS Code (editör + terminal; yapay zekâ eklentisi şimdilik yok). Kurulum: `SETUP.md`.
 - **Tek talimat kaynağı `AGENTS.md`** (opencode okur); `CLAUDE.md` = `@AGENTS.md` + Claude ekleri.
-- **AMD Ross projeye sabitlenir:** skill'ler `third_party/ross-ai-assistant` submodule'ünden
-  `.claude/skills/`'e bağlanır (opencode da okur); Vivado MCP sunucusu makinede sürüm sürüm yan yana
-  durur, proje kendi sürümünün yolunu kullanır. Global skill kurulumu yapılmaz; VS Code Ross
-  eklentisi MCP sunucusuyla birlikte kullanılmaz.
-- **Sürüm kuralı:** Vivado, Ross, Verilator, model ve kit sürümleri `project.toml`'da sabittir.
-  Bir iş ortasında değişmez; yükseltme ara teslimden sonra, tam kontrol ve bir satır karar kaydıyla.
+- **AMD Ross makineye bir kez, global kurulur** (MCP sunucusu, belge arama, skill'ler); projede Ross
+  dosyası yoktur. VS Code Ross eklentisi MCP sunucusuyla birlikte kullanılmaz.
+- **Sürüm sabitlenmez:** projeler makinede ne kuruluysa onu kullanır. Araçlar ara sıra elle
+  güncellenir (SETUP §11); sonra açık projelerde `make check` bir kez koşar.
+- **Ücretsiz modellerin eforu** opencode variant'ıdır (`-m bilgem/code#high`); rol eforu
+  `kit_config.toml [models.variants]` ile variant'a çevrilir. Kurum sunucusunun hızı yüke göre
+  değişir; opencode arka planda çalıştırılıp beklenir, yavaşlık hata sayılmaz.
 - **Bağlam disiplini:** PDF ve uzun incelemeler ana oturuma ham girmez (önce alt ajan/ücretsiz model
   özetler); log'lar `build/`'de kalır; AMD belgeleri `amd-doc-search` ile sorgulanır.
 
 ## 10. Kit bakımı
 
-- Aylık: Ross sürüm notları; yeni sürüm `kit_config.toml`'a (yalnızca yeni projeler etkilenir),
-  yararlı yeni skill'ler ilgili rol metnine.
+- Ara sıra: `tools/update_ross.sh`; yararlı yeni skill'ler ilgili rol metnine.
 - Her projeden sonra: model karnesi ve dersler kitteki rol tablosuna ve şablonlara.
 - Kit bir git reposudur; projeler hangi kit sürümüyle kurulduğunu `project.toml`'da tutar.
 

@@ -127,11 +127,9 @@ def copy_entry(entry: dict, ctx: dict, values: dict, dest: Path, existing: bool,
             target.chmod(0o755)
 
 
-def opencode_frontmatter(spec: dict, model_id: str, effort: str, role: str) -> list:
+def opencode_frontmatter(spec: dict, model_id: str, role: str) -> list:
     lines = ["---", f"description: {spec['description']}", "mode: primary", f"model: {model_id}",
              f"steps: {80 if role in ('rtl-designer', 'verification') else 40}"]
-    if effort == "low":
-        lines.append("reasoningEffort: low   # PILOT: check the platform accepts it")
     lines += ["permission:", "  edit:", '    "*": deny']
     lines += [f'    "{p}": allow' for p in spec["writable"] if not p.startswith("!")]
     lines += [f'    "{p[1:]}": deny' for p in spec["writable"] if p.startswith("!")]
@@ -143,7 +141,13 @@ def opencode_frontmatter(spec: dict, model_id: str, effort: str, role: str) -> l
     return lines
 
 
-def render_agents(ctx: dict, models: dict, names: dict, dest: Path, log: list) -> list:
+def run_model(model_id: str, model_key: str, effort: str, variants: dict) -> str:
+    """opencode -m value: provider/model#variant (variant from kit_config [models.variants])."""
+    variant = variants.get(model_key, {}).get(effort, "")
+    return f"{model_id}#{variant}" if variant else model_id
+
+
+def render_agents(ctx: dict, models: dict, names: dict, variants: dict, dest: Path, log: list) -> list:
     roles = tomllib.loads((KIT / "agents/roles.toml").read_text())
     team, rows, wanted = ctx["team"], [], set()
     for role, spec in roles.items():
@@ -166,7 +170,8 @@ def render_agents(ctx: dict, models: dict, names: dict, dest: Path, log: list) -
                 "`make check-locks` and the reviewer check).\n")
         else:
             path, tool = dest / ".opencode/agents" / f"{role}.md", "opencode"
-            text = "\n".join(opencode_frontmatter(spec, models[model_key], effort, role)) + body
+            text = "\n".join(opencode_frontmatter(spec, models[model_key], role)) + body
+            effort = f"`-m {run_model(models[model_key], model_key, effort, variants)}`"
         state = "updated " if path.exists() else "created "
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
@@ -198,10 +203,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--board", default="")
     parser.add_argument("--features", default="", help="comma list name[:simple|medium|hard]")
     parser.add_argument("--dispatch", choices=["manual", "auto"])
-    parser.add_argument("--kit-config", type=Path, default=KIT / "kit_config.toml")
+    parser.add_argument("--kit-config", type=Path, default=KIT / "kit_config.toml",
+                        help="machine settings (copy of kit_config.example.toml)")
     parser.add_argument("--existing", action="store_true")
     parser.add_argument("--git", action="store_true", help="git init + first commit (new project)")
-    parser.add_argument("--with-ross", action="store_true", help="run flow/tools/ross_setup.sh (network)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     args.dest = (args.dest or Path.cwd() / args.name).expanduser().resolve()
@@ -210,6 +215,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if not args.kit_config.exists():
+        sys.exit(f"{args.kit_config} missing: cp {KIT / 'kit_config.example.toml'} {args.kit_config} and edit it")
     kit = tomllib.loads(args.kit_config.read_text())
     deliverables = {"code"} | {d.strip() for d in args.deliver.split(",") if d.strip()}
     options = {o.strip() for o in args.options.split(",") if o.strip()}
@@ -220,13 +227,12 @@ def main() -> int:
         sys.exit("--board is required for deliverable board")
     ctx = {"team": args.team, "deliverable": deliverables, "option": options}
 
-    tools, models_cfg = kit["tools"], kit["models"]
+    models_cfg = kit["models"]
     models = {k: v for k, v in models_cfg.items() if isinstance(v, str)}
-    names = models_cfg["names"]
+    names, variants = models_cfg["names"], models_cfg.get("variants", {})
     ordered = [d for d in DELIVERABLES if d in deliverables]
     profile = f"{args.team} × {{{', '.join(ordered)}}}" + (f" + {', '.join(sorted(options))}" if options else "")
     version = (KIT / "VERSION").read_text().strip()
-    ross = tools["ross_version"]
     values = {
         "PROJECT": args.name, "SUMMARY": args.summary, "PROFILE_LINE": profile, "TEAM": args.team,
         "DELIVERABLES_TOML": ", ".join(f'"{d}"' for d in ordered),
@@ -234,11 +240,6 @@ def main() -> int:
         "KIT_VERSION": version, "DATE": datetime.date.today().isoformat(),
         "DISPATCH": args.dispatch or kit["defaults"]["dispatch"], "MAX_ATTEMPTS": kit["defaults"]["max_attempts"],
         "WIKI_HINT": "; compiled knowledge is in llm/wiki/ (index.md first)" if "wiki" in options else "",
-        "VIVADO_VERSION": tools["vivado_version"], "VIVADO_PATH": tools["vivado_path"],
-        "ROSS_VERSION": ross, "VERILATOR_VERSION": tools["verilator_version"],
-        "ROSS_MCP_BINARY": str(Path(tools["ross_mcp_root"]).expanduser() / ross /
-                               tools["ross_mcp_binary"].format(version=ross)),
-        "AMD_DOC_SEARCH_URL": tools["amd_doc_search_url"],
         "PART": args.part, "PREFIX": args.prefix, "CLOCK_MHZ": args.clock_mhz, "BOARD": args.board or "board",
         "IP_VENDOR": kit["organisation"]["ip_vendor"],
         "MODELS_TOML": "[models.ids]\n" + "\n".join(f'{k} = "{v}"' for k, v in models.items())
@@ -259,12 +260,12 @@ def main() -> int:
     log = []
     for entry in chosen:
         copy_entry(entry, ctx, values, args.dest, args.existing, log)
-    rows = render_agents(ctx, models, names, args.dest, log)
+    rows = render_agents(ctx, models, names, variants, args.dest, log)
 
     where = ["| Path | Content |", "|---|---|"] + [
         f"| `{e.get('show', e['path']).replace('__BOARD__', '<board>')}` | {e['where']} |"
         for e in entries if "where" in e and selected(e, ctx)]
-    role_table = ["| Role | Tool | Model | Effort | Task |", "|---|---|---|---|---|"] + [
+    role_table = ["| Role | Tool | Model | Effort / opencode -m | Task |", "|---|---|---|---|---|"] + [
         f"| {r} | {t} | {m} | {e} | {d} |" for r, t, m, e, d in rows]
     agents = args.dest / "AGENTS.md"
     agents.write_text(agents.read_text().replace("{{WHERE_TABLE}}", "\n".join(where))
@@ -294,8 +295,6 @@ def main() -> int:
         subprocess.run(["git", "add", "-A"], cwd=args.dest, check=True)
         subprocess.run(["git", "commit", "-q", "-m", f"Project setup from fpga-method {version}",
                         "-m", f"Profile: {profile}"], cwd=args.dest, check=True)
-    if args.with_ross:
-        subprocess.run(["flow/tools/ross_setup.sh"], cwd=args.dest, check=False)
 
     for line in log:
         if not line.startswith("created"):

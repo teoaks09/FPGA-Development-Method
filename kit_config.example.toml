@@ -1,0 +1,41 @@
+# Machine-specific settings. Copy to kit_config.toml (git-ignored) and edit once per workstation:
+#   cp kit_config.example.toml kit_config.toml
+# Tool versions are not pinned: every project uses whatever is installed. Tools are updated by hand
+# now and then (SETUP.md "Güncelleme").
+
+[models]
+# Claude Code model aliases (used in .claude/agents/*.md frontmatter)
+opus   = "opus"
+sonnet = "sonnet"
+haiku  = "haiku"
+# opencode model ids (provider/model) from `opencode models`. Free models are keyed by role in
+# agents/roles.toml (qwen, deepseek); add keys when new free models are connected.
+qwen     = "bilgem/general"
+deepseek = "bilgem/code"
+
+[models.names]
+# Human-readable names for commit trailers and the model scorecard.
+qwen     = "Qwen (bilgem/general)"
+deepseek = "DeepSeek (bilgem/code)"
+opus     = "Claude Opus"
+sonnet   = "Claude Sonnet"
+haiku    = "Claude Haiku"
+
+[models.variants]
+# Role effort (low | medium | high | max, agents/roles.toml) -> opencode variant of each free model.
+# Variants are defined per model in ~/.config/opencode/opencode.json(c). Dispatch: -m <id>#<variant>.
+qwen     = { low = "low", medium = "medium", high = "xhigh", max = "xhigh" }
+deepseek = { low = "low", medium = "high", high = "high", max = "max" }
+
+[tools]
+# Vivado/Vitis are taken from PATH (settings64.sh in ~/.bashrc); nothing to set here.
+petalinux_path = ""                  # optional, when PetaLinux is installed
+# AMD Ross is installed once per machine (SETUP.md §6), not per project:
+ross_dir = "/mnt/E/Xilinx/ross"      # vivado-mcp-server + ross-ai-assistant/ (git clone of the skills)
+
+[organisation]
+ip_vendor = "company.local"          # vendor field of packaged custom IP (VLNV)
+
+[defaults]
+dispatch = "manual"                  # manual | auto  (start manual, move to auto when trusted)
+max_attempts = 3                     # attempts before a task escalates

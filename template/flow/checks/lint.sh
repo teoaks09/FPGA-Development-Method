@@ -19,7 +19,8 @@ waiver=()
 
 # Xilinx XPM sources are given to Verilator as libraries when Vivado is installed (PILOT).
 xpm=()
-vivado_path="$(pv tools.vivado_path)"
+vivado_bin="$(command -v vivado || true)"
+vivado_path="${vivado_bin:+$(dirname "$(dirname "$vivado_bin")")}"
 for library in "$vivado_path"/data/ip/xpm/xpm_cdc/hdl/xpm_cdc.sv \
                "$vivado_path"/data/ip/xpm/xpm_fifo/hdl/xpm_fifo.sv \
                "$vivado_path"/data/ip/xpm/xpm_memory/hdl/xpm_memory.sv; do
@@ -41,7 +42,6 @@ else
     echo "LINT_VERILATOR_RESULT: SKIP verilator not found"; skip_note+=" verilator"
 fi
 
-vivado_bin="$(command -v vivado || echo "$vivado_path/bin/vivado")"
 if [[ "${LINT_VIVADO:-1}" == 1 && -x "$vivado_bin" ]]; then
     "$vivado_bin" -mode batch -nojournal -log "$out/vivado.log" -source flow/vivado/lint.tcl \
         -tclargs "$feature" "$(pv project.part)" "$top" >"$out/vivado.stdout" 2>&1
