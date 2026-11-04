@@ -10,8 +10,8 @@ Short on purpose. Extend only with rules that fixed a real problem.
 - Header: module, one-line description, requirement IDs, Xilinx IP used.
 - Synchronous active-high reset, only on control registers.
 - CDC only through XPM (`xpm_cdc_*`) or an `ASYNC_REG` synchronizer; never use the first flop.
-- Counter widths from `$clog2`; every wait state has a timeout.
-- Prefer Xilinx IP / XPM over own designs for FIFOs, CDC, MACs.
+- Counter widths from `$clog2`; a wait state that can hang the system has a timeout.
+- Xilinx IP / XPM: see AGENTS.md (design principles).
 
 ## Testbench (SystemVerilog or Verilog, never cocotb)
 - `hw/tb/<feature>/tb_<feature>.sv`, sources in `files.f`; use `hw/tb/common` (tb_pkg, watchdog,

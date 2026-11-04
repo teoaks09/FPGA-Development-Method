@@ -136,7 +136,7 @@ def opencode_frontmatter(spec: dict, model_id: str, role: str) -> list:
     lines += ['    "docs/requirements.md": deny', '    "docs/coding_rules.md": deny']
     lines += ["  bash:", '    "*": ask', '    "make *": allow', '    "python3 flow/*": allow',
               '    "flow/*": allow', '    "git status*": allow', '    "git diff*": allow',
-              '    "git add*": allow', '    "git commit*": allow', '    "git checkout*": allow',
+              '    "git add*": allow', '    "git commit*": deny', '    "git checkout*": allow',
               '    "git switch*": allow', '    "git push*": deny', "  webfetch: deny", "---", ""]
     return lines
 

@@ -24,4 +24,18 @@ print(f"{names.get(alias, sys.argv[1])} (id: {sys.argv[1]})")
 PY
 )"
 git add -A
+# Scope check: every changed file must be inside the role's writable paths (agent file section
+# "Writable paths"). This is the hard boundary; prompt and tool permissions are not.
+python3 - "$agent" <<'PY' || { git reset -q; exit 1; }
+import fnmatch, re, subprocess, sys
+text = open(sys.argv[1]).read().split("## Writable paths", 1)[-1].split("\n## ", 1)[0]
+allow = re.findall(r"^- `([^`]+)`", text, re.M)
+deny = re.findall(r"^- not `([^`]+)`", text, re.M)
+files = subprocess.run(["git", "diff", "--cached", "--name-only"], capture_output=True, text=True).stdout.split()
+bad = [f for f in files if not any(fnmatch.fnmatch(f, g) for g in allow) or any(fnmatch.fnmatch(f, g) for g in deny)]
+if bad:
+    print("SCOPE_RESULT: FAIL outside writable paths: " + " ".join(bad))
+    sys.exit(1)
+print(f"SCOPE_RESULT: PASS files={len(files)}")
+PY
 git commit -m "$message" --trailer "Model: $model_name" --trailer "Role: $role" --trailer "Task: $task"

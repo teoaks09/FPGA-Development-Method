@@ -29,27 +29,37 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
   questions). Knowledge lives in files, not in a session. Start a new session when the context grows.
 - Talk to the user in Turkish, briefly. Project files are English; `README.md` (and
   `docs/hardware_test.md`) are Turkish, with signal and register names in English.
-- The user approves three things: requirements + team level, feature specs, delivery. Everything
-  else: decide, proceed, summarise. Never merge to `main`, push, or install system packages unasked.
+- The user approves: requirements + team level, feature specs, delivery, and any own design where
+  a Xilinx IP fits (below). Everything else: decide, proceed, summarise. Never merge to `main`, push, or install system packages unasked.
 - `docs/requirements.md` and `docs/coding_rules.md` change only with the user's approval.
 - Model output is unqualified tool output: a check passes only when its script prints PASS. Copy
   raw `*_RESULT` lines; never report a result from memory.
 - Behaviour that is not in the spec is a derived requirement: list it as `DERIVED-nnn` in the
   result card (or tell the user) instead of silently adding it.
-- RTL and its testbench come from different agents; the testbench is written from the spec.
+- RTL and its testbench come from different agents; the testbench is written from the spec and
+  checks against the spec examples or an independent reference, never against DUT output.
+  How deep to test (boundaries, reset, backpressure, assertions, random seeds) is the
+  verification agent's call; on an RTL/testbench mismatch neither side is edited to agree.
 - Keep the context small: logs stay in `build/`; read documents section by section; PDFs are never
   pasted into a session{{WIKI_HINT}}.
 
 ## Design principles
 
 - AMD/Xilinx only. RTL in SystemVerilog; testbenches in SystemVerilog/Verilog (never cocotb).
-- Xilinx IP / XPM first; an own design where an IP fits needs a reason in `docs/decisions.md`.
+- Use Xilinx IP / XPM for functions that are hard to get right by hand or take serious effort
+  (interfaces and protocols, clocking, clock-domain crossing, ECC, memory controllers). Plain logic
+  stays in RTL, including arithmetic and inferred RAM/ROM. Writing your own where such an IP fits
+  needs the user's approval: give the reason first, then record it in `docs/decisions.md`.
 - Keep it simple, but never drop a functionally required feature.
-- The design never locks up: every wait has a timeout; dropped data is counted.
+- The design never locks up: a wait that can hang the system gets a timeout (unless the protocol
+  requires waiting, e.g. backpressure); dropped data is counted.
 - Repository first: the Vivado project is a temporary output in `build/`, created by committed Tcl
   that references repository files in place; IP from Tcl (no `.xci`), block designs via
   `write_bd_tcl`. Settings changed in the GUI are written back to Tcl/XDC.
-- Scripts run with plain `make`/Tcl, without any AI tool.
+- Scripts run with plain `make`/Tcl, without any AI tool; their PASS is the gate.
+- Use AMD Ross: knowledge from `amd-doc-search` (not from memory), Vivado/Vitis work and debugging
+  through the Vivado MCP server, and the Ross skills where one fits (lint, simulation, timing
+  methodology, IP configuration, ILA/VIO, Vitis, HLS). Write your own procedure only where none fits.
 
 ## Checks
 
@@ -58,7 +68,7 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
 | `make check FEATURE=<f>` | lint + simulation + out-of-context timing + locks; raw lines in `build/check/<f>.txt` |
 | `make lint FEATURE=<f>` | Verilator + Vivado lint |
 | `make sim FEATURE=<f>` | xsim (`SIM=verilator` or `SIM=iverilog` for fast runs); needs `TB_RESULT: PASS` |
-| `make ooc FEATURE=<f>` | out-of-context synthesis + place & route at the spec clock |
+| `make ooc FEATURE=<f>` | out-of-context synthesis + place & route at the spec clock; methodology/CDC reports (critical = FAIL) |
 | `make trace` | optional: requirements without tests, undefined IDs |
 | `make env-check` | tools and models on this machine |
 <!-- @if deliverable=ip -->
@@ -84,7 +94,8 @@ features get `hw/rtl/<feature>/` and `hw/tb/<feature>/` (`make feature NAME=<fea
   with `-m` from the role table (`--auto` approves what is not denied; path permissions still apply).
   The internal server can be slow under load: run it in the background and wait (minutes, no
   short timeout); a slow answer is not a failure.
-- Commit: `flow/git/commit.sh <role> <task> "<message>"` (adds Model/Role/Task trailers).
+- Commit only with `flow/git/commit.sh <role> <task> "<message>"`: it rejects files outside the
+  role's writable paths (`SCOPE_RESULT`) and adds Model/Role/Task trailers.
 <!-- @if team=L2,L3 -->
 - After {{MAX_ATTEMPTS}} failed attempts: escalate to `senior-engineer` (Sonnet), then the main session (Opus).
 <!-- @end -->

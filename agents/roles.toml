@@ -30,18 +30,6 @@ model    = { L1 = "opus", L2 = "sonnet", L3 = "deepseek", L4 = "deepseek" }
 effort   = { L1 = "high", L2 = "high", L3 = "high", L4 = "high" }
 writable = ["tracking/tasks/*.review.md"]
 
-[vivado-runner]
-description = "Runs Vivado/simulation flows and returns short summaries instead of logs."
-model    = { L1 = "haiku", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
-effort   = { L1 = "default", L2 = "low", L3 = "low", L4 = "low" }
-writable = ["build/**", "tracking/tasks/*.result.md"]
-
-[doc-writer]
-description = "Writes the Turkish README (and hardware test procedure) from specs and RTL names."
-model    = { L1 = "sonnet", L2 = "deepseek", L3 = "deepseek", L4 = "deepseek" }
-effort   = { L1 = "medium", L2 = "low", L3 = "low", L4 = "low" }
-writable = ["README.md", "docs/hardware_test.md"]
-
 [wiki-maintainer]
 description = "Maintains llm/wiki: ingests sources, fills codemap notes, runs wiki lint."
 option   = "wiki"

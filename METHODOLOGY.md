@@ -1,6 +1,6 @@
-# Yapay zekâ ile sayısal tasarım yöntemi (fpga-method v0.5)
+# Yapay zekâ ile sayısal tasarım yöntemi (fpga-method)
 
-Durum: dış inceleme ve benchmark öncesi taslak. **PİLOT** etiketli maddeler ilk denemede doğrulanır.
+Sürüm: `VERSION`. Durum: dış inceleme sonrası, benchmark öncesi. **PİLOT** etiketli maddeler ilk denemede doğrulanır.
 
 Bu repo bir **kit**tir. Yeni bir AMD/Xilinx FPGA (ve gerekirse Zynq PS) işine başlarken bir Claude
 oturumuna bu repo verilir; Claude kullanıcıyla işi konuşur, projeyi şablondan kurar ve seçilen ekip
@@ -104,6 +104,10 @@ build/          git-ignored: Vivado projesi ve tüm çıktılar
 `deliver` skill'i: bütün kontroller, Türkçe README, kararlar, durum; kullanıcı onaylar ve tag atar
 (**onay 3**). Büyük işte ara teslimler aynı şekilde yapılır (milestone = tag).
 
+Ayrıca: uygun bir Xilinx IP/XPM varken kendi tasarımını yapmak kullanıcı onayı ister (gerekçe
+önce söylenir, sonra `decisions.md`). Ölçüt: elle doğru yapması zor veya ciddi emek isteyen işler
+(arayüz/protokol, saat, CDC, ECC, bellek denetleyici) IP'dir; aritmetik, çıkarımlı RAM/ROM RTL'dir.
+
 ### 5.4 Sonradan değişiklik
 Proje aylar sonra açıldığında: `make env-check` (makinedeki araçlar), `status.md`, büyük projede
 `llm/wiki/index.md`. Profil değişirse (ör. L4 → L2, wiki eklenir) `new_project.py --existing`.
@@ -117,17 +121,23 @@ düzenlenmez). L1–L3'te ana oturum (Opus) mimariyi ve kararları tutar.
 | Rol | Görev | L1 | L2 | L3 | L4 |
 |---|---|---|---|---|---|
 | spec-writer | Kısa spec; L3'te kabul TB'si | Opus·high | Opus·high | Sonnet·high | Qwen |
-| rtl-designer | RTL | Sonnet·medium | Qwen | Qwen | Qwen |
-| verification | TB (RTL okumadan) | Sonnet·medium | DeepSeek | DeepSeek | DeepSeek |
-| reviewer | Bağımsız inceleme | Opus·high | Sonnet·high | DeepSeek | DeepSeek |
-| vivado-runner | Flow koşturma, kısa özet | Haiku | DeepSeek·low | DeepSeek·low | DeepSeek·low |
-| doc-writer | Türkçe README | Sonnet·medium | DeepSeek·low | DeepSeek·low | DeepSeek·low |
+| rtl-designer | RTL | Sonnet·medium | Qwen·high | Qwen·high | Qwen·high |
+| verification | TB (RTL okumadan) | Sonnet·medium | DeepSeek·high | DeepSeek·high | DeepSeek·high |
+| reviewer | Bağımsız inceleme | Opus·high | Sonnet·high | DeepSeek·high | DeepSeek·high |
 | wiki-maintainer (wiki) | Wiki bakımı | Haiku | DeepSeek·low | DeepSeek·low | DeepSeek·low |
 | senior-engineer | Yükseltilen işler; L2'de `hard` RTL | — | Sonnet·high | Sonnet·high | — |
 
 - Gerekçe (kullanıcının model değerlendirmesi): Qwen fonksiyonda güvenilir ama hijyeni zayıf →
-  RTL; DeepSeek hijyen bilgisi, sunum ve 1M bağlamı iyi ama fonksiyonda hata yapar → TB, log,
-  doküman, wiki. RTL ile TB farklı ajanlarda (L2–L4'te farklı modellerde).
+  RTL; DeepSeek hijyen bilgisi, sunum ve 1M bağlamı iyi ama fonksiyonda hata yapar → TB, inceleme,
+  wiki. RTL ile TB farklı ajanlarda (L2–L4'te farklı modellerde). Dış incelemelerin ortak uyarısı:
+  mantığı zayıf model TB'nin beklenen değerlerini üretmemeli; bu yüzden beklenen değerler spec
+  örneklerinden gelir. TB'yi hangi modelin yazacağı benchmark'ta kalibre edilir.
+- Ajanlar ve skill'ler: süreç skill'leri kitte (new-feature, task-card, deliver, llm-wiki); FPGA işi
+  için AMD Ross skill'leri, `amd-doc-search` (RAG) ve Vivado MCP kullanılır; rol metinleri hangisini
+  kullanacağını söyler. Ross'ta Vivado ajanı yok; roller kitte kalır.
+- Seviyeler: L1 her şeyi Claude yapar. L2 Claude mimari ve spec, ücretsiz modeller tasarım ve test,
+  `hard` özellik Sonnet'e. L3 Claude mimari, spec ve kilitli kabul TB'si; tasarım ve test ücretsiz
+  modellerde. L4 Claude yalnızca iskeleti kurar; mimari, spec, tasarım ve test ücretsiz modellerde.
 - Yükseltme: aynı kontrol 3 denemede geçmezse ücretsiz model → senior-engineer → ana oturum.
   L4'te durup kullanıcıya bildirilir.
 - Yeni ücretsiz modeller `kit_config.toml`'a eklenir; tablo benchmark'a göre güncellenir.
@@ -138,7 +148,9 @@ düzenlenmez). L1–L3'te ana oturum (Opus) mimariyi ve kararları tutar.
   model, modeli açıkça verilen ana ajan olarak çalışır: `opencode run --auto -m <model> --agent <rol> ...`.
   `dispatch = manual`: Claude kullanıcıya tek satır verir; `auto`: kendisi çalıştırır. İlk projelerde manual.
 - **Kontroller:** `make check FEATURE=<f>` = lint (Verilator + Vivado) + simülasyon (xsim; hızlı
-  koşu için Verilator veya iverilog) + OOC timing + kilitli dosyalar. İsteğe bağlı: `make trace`.
+  koşu için Verilator veya iverilog) + OOC timing ve methodology/CDC raporu + kilitli dosyalar.
+  Ücretsiz model yalnızca `flow/git/commit.sh` ile commit eder; script yazma yolu dışındaki
+  dosyayı reddeder (asıl sınır budur; prompt ve araç izinleri değil). İsteğe bağlı: `make trace`.
   Eksik araç PASS sayılmaz.
 - **Türetilmiş gereksinim:** spec'te olmayan davranış `DERIVED-nnn` olarak listelenir; Claude (L4'te
   kullanıcı) kabul eder veya reddeder. Zayıf modellerin "kendi tasarımını uydurmasını" bu yakalar.
@@ -181,5 +193,6 @@ amaç/not yazar. Ücretsiz modelin derlediği bilgi `status: unverified` taşır
 1. Kiti okuduğunu tek cümleyle teyit et.
 2. Kullanıcıdan işi anlatmasını iste; yalnızca ne istediğini sor (en fazla 5 kısa soru).
 3. Profili tek cümle gerekçeyle öner, onay al; §5.1'i uygula.
-4. Teknik kararları sen ver, kısaca söyle; kullanıcıyı yalnızca 3 onay noktasında durdur.
+4. Teknik kararları sen ver, kısaca söyle; kullanıcıyı yalnızca 3 onay noktasında ve uygun Xilinx
+   IP varken kendi tasarımını seçtiğinde durdur.
 5. Türkçe ve kısa konuş; proje dosyaları İngilizce (README hariç).

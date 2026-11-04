@@ -20,6 +20,14 @@ place_design
 route_design
 report_timing_summary -file [file join $out timing_summary.rpt]
 report_utilization    -file [file join $out utilization.rpt]
+check_timing -verbose -file [file join $out check_timing.rpt]
+report_methodology    -file [file join $out methodology.rpt]
+report_cdc -details   -file [file join $out cdc.rpt]
+report_drc            -file [file join $out drc.rpt]
+set critical 0
+catch {set critical [llength [get_methodology_violations -filter {SEVERITY == "Critical Warning"}]]}
+result_line METHODOLOGY [expr {$critical == 0 ? "PASS" : "FAIL"}] "board=$board critical=$critical"
+if {$critical > 0} { exit 1 }
 set setup_path [get_timing_paths -max_paths 1 -nworst 1 -setup]
 set hold_path  [get_timing_paths -max_paths 1 -nworst 1 -hold]
 set wns [get_property SLACK $setup_path]
