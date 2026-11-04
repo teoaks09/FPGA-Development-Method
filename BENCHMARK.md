@@ -20,6 +20,11 @@ Kurallar: her koşu ayrı klasörde; aynı gereksinim dosyası; kullanıcı yaln
 müdahale eder (müdahaleler not edilir); koşu, `make check` PASS + `make ip` PASS + README ile biter
 veya 4 saatlik aktif çalışma sınırında durdurulur.
 
+## Kalibrasyon (TB'yi kim yazmalı)
+B2'de aynı özelliğin testbench'i hem DeepSeek hem Qwen'e ayrı ayrı yazdırılır (ikisi de RTL'i
+görmez). Ölçü: bağımsız TB'nin bulduğu ve bu TB'nin kaçırdığı hatalar, bilerek eklenen 3 hatadan
+kaçının yakalandığı, süre. Sonuç `roles.toml` verification satırını belirler (L2–L4).
+
 ## Ölçülenler
 | Ölçü | Nasıl |
 |---|---|
